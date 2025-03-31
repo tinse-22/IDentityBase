@@ -1,0 +1,6 @@
+@BaseIdentity.Presentation_HostAddress = http://localhost:5111
+
+GET {{BaseIdentity.Presentation_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
