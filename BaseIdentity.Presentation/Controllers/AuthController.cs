@@ -1,6 +1,10 @@
 ﻿using BaseIdentity.Application.DTOs.Request;
+using BaseIdentity.Application.Interface.IExternalAuthService;
 using BaseIdentity.Application.Interface.IServices;
+using BaseIdentity.Application.Interface.IToken;
+using BaseIdentity.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BaseIdentity.Presentation.Controllers
@@ -10,10 +14,16 @@ namespace BaseIdentity.Presentation.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUserServices _userServices;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IExternalAuthService _externalAuthService;
 
-        public AuthController(IUserServices userServices)
+
+
+        public AuthController(IUserServices userServices, SignInManager<ApplicationUser> signInManager,   IExternalAuthService externalAuthService)
         {
             _userServices = userServices;
+            _signInManager = signInManager;
+            _externalAuthService = externalAuthService;
         }
         [HttpPost("register")]
         [AllowAnonymous]
@@ -71,5 +81,25 @@ namespace BaseIdentity.Presentation.Controllers
             var response = await _userServices.GetCurrentUserAsync();
             return Ok(response);
         }
+        // 1) API gọi để lấy link Google OAuth2
+        [HttpGet("google-login")]
+        [AllowAnonymous]
+        public IActionResult GoogleLogin()
+        {
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties("Google", Url.Action("GoogleResponse", "Auth"));
+            return new ChallengeResult("Google", properties);
+        }
+
+        // 2) Google callback trả về đây
+        [HttpGet("google-response")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GoogleResponse()
+        {
+            var result = await _externalAuthService.ProcessGoogleLoginAsync();
+            if (!result.IsSuccess)
+                return BadRequest();
+            return Ok(result.Data);
+        }
+
     }
 }

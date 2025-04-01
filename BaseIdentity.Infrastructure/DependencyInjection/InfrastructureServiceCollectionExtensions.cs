@@ -1,7 +1,14 @@
-﻿using System.Text;
-using BaseIdentity.Application.DTOs.Request;
+﻿using BaseIdentity.Application.DTOs.Request;
+using BaseIdentity.Application.Interface.IExternalAuthService;
+using BaseIdentity.Application.Interface.IServices;
+using BaseIdentity.Application.Interface.IToken;
+using BaseIdentity.Application.Interface.Repositories.IGenericRepository;
+using BaseIdentity.Application.Interface.Repositories.IUnitOfWork;
+using BaseIdentity.Application.Services;
 using BaseIdentity.Domain.Entities;
 using BaseIdentity.Infrastructure.Data;
+using BaseIdentity.Infrastructure.Data.UnitOfWork;
+using BaseIdentity.Infrastructure.Repositories.GenericRepository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -9,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace BaseIdentity.Infrastructure.DependencyInjection
 {
@@ -16,14 +24,14 @@ namespace BaseIdentity.Infrastructure.DependencyInjection
     {
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
-            // 1. Cấu hình DbContext sử dụng SQL Server
+            // 1. Cấu hình DbContext (SQL Server)
             services.AddDbContext<IdentityBaseDbContext>(options =>
                 options.UseSqlServer(
                     configuration.GetConnectionString("IdentityAuthentication"),
                     sqlOptions => sqlOptions.MigrationsAssembly(typeof(InfrastructureServiceCollectionExtensions).Assembly.FullName)
                 ));
 
-            // 2. Cấu hình CORS (cho phép mọi origin, method và header)
+            // 2. Cấu hình CORS
             services.AddCors(options =>
             {
                 options.AddPolicy("CorsPolicy", builder =>
@@ -34,9 +42,12 @@ namespace BaseIdentity.Infrastructure.DependencyInjection
                 });
             });
 
-            // 3. Cấu hình ASP.NET Core Identity với ApplicationUser
+            // 3. Cấu hình ASP.NET Core Identity
             services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
             {
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+                options.Lockout.AllowedForNewUsers = true;
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireDigit = true;
                 options.Password.RequireLowercase = true;
@@ -46,16 +57,18 @@ namespace BaseIdentity.Infrastructure.DependencyInjection
             .AddEntityFrameworkStores<IdentityBaseDbContext>()
             .AddDefaultTokenProviders();
 
-            // 4. Cấu hình JWT Authentication sử dụng cấu hình từ JwtSettings trong appsettings.json
+            // 4. Cấu hình JWT Authentication
             var jwtSettings = configuration.GetSection("JwtSettings").Get<JwtSettings>();
             if (jwtSettings == null || string.IsNullOrEmpty(jwtSettings.Key))
             {
                 throw new InvalidOperationException("JWT secret key is not configured.");
             }
+
             var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key));
 
             services.AddAuthentication(options =>
             {
+                // Scheme mặc định
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
@@ -72,6 +85,7 @@ namespace BaseIdentity.Infrastructure.DependencyInjection
                     IssuerSigningKey = secretKey
                 };
 
+                // Tuỳ biến phản hồi khi không có token
                 options.Events = new JwtBearerEvents
                 {
                     OnChallenge = context =>
@@ -88,7 +102,17 @@ namespace BaseIdentity.Infrastructure.DependencyInjection
                 };
             });
 
-            // 5. Đăng ký các repository (ví dụ: IAccountRepository)
+            // 5. Đăng ký thêm các repository / service hạ tầng
+            // services.AddScoped<IAccountRepository, AccountRepository>(); v.v.
+            services.AddScoped<IExternalAuthService, ExternalAuthService>();
+            // Đăng ký các dịch vụ ứng dụng
+            services.AddScoped<ITokenServices, TokenServices>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddScoped<IUserServices, UserServices>();
+            services.AddScoped(typeof(IGenericRepository<,>), typeof(GenericRepository<,>));
+
+
             return services;
         }
     }

@@ -1,39 +1,42 @@
-﻿using BaseIdentity.Application.Interface.IServices;
-using BaseIdentity.Application.Interface.IToken;
-using BaseIdentity.Application.Interface.Repositories.IGenericRepository;
-using BaseIdentity.Application.Interface.Repositories.IUnitOfWork;
-using BaseIdentity.Application.Mapping;
+﻿using BaseIdentity.Application.Mapping;
 using BaseIdentity.Application.Services;
 using BaseIdentity.Infrastructure.Data.UnitOfWork;
 using BaseIdentity.Infrastructure.DependencyInjection;
 using BaseIdentity.Infrastructure.Repositories.GenericRepository;
 using BaseIdentity.Presentation.Exceptions;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Identity;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
+using BaseIdentity.Application.Interface.IServices;
+using BaseIdentity.Application.Interface.IToken;
+using BaseIdentity.Application.Interface.Repositories.IGenericRepository;
+using BaseIdentity.Application.Interface.Repositories.IUnitOfWork;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Thêm các dịch vụ vào container.
-
+// Đăng ký HttpContextAccessor và ProblemDetails
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddProblemDetails();
 
-
-// Cấu hình các dịch vụ của bạn
+// Cấu hình DB, Identity, JWT, CORS (được định nghĩa trong Infrastructure)
 builder.Services.AddInfrastructureServices(builder.Configuration);
-
-// Đăng ký các dịch vụ cụ thể
-builder.Services.AddScoped<ITokenServices, TokenServices>();
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+// Cấu hình AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
-builder.Services.AddScoped(typeof(IGenericRepository<,>), typeof(GenericRepository<,>));
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-builder.Services.AddScoped<IUserServices, UserServices>();
 
-// Cấu hình xác thực và phân quyền
+// Cấu hình Google OAuth (cho phép đăng nhập bằng Google)
+builder.Services.AddAuthentication()
+    .AddGoogle(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+        // options.CallbackPath = "/signin-google"; // Nếu muốn custom callback
+    });
+
+// Cấu hình Controllers và Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-// Adding Swagger
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "User Auth", Version = "v1", Description = "Services to Authenticate user" });
@@ -44,34 +47,18 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Please enter a valid token in the following format: {your token here} do not add the word 'Bearer' before it."
+        Description = "Enter your token (no 'Bearer' prefix)."
     });
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                },
-                Scheme = "oauth2",
-                Name = "Bearer",
-                In = ParameterLocation.Header,
-            },
-            new List<string>()
-        }
+        { new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" } }, new List<string>() }
     });
 });
-
-
-
-
-
 var app = builder.Build();
+
+// Pipeline cấu hình
 app.UseCors("CorsPolicy");
-// Cấu hình pipeline HTTP
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -79,14 +66,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
-
-
 app.UseHttpsRedirection();
-
-// Thêm xác thực và phân quyền
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

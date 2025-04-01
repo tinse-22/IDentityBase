@@ -1,7 +1,9 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
+using System.Transactions;
 using AuthenticationApi.Application.Common;
 using AutoMapper;
+using BaseIdentity.Application.DTOs.Identities;
 using BaseIdentity.Application.DTOs.Request;
 using BaseIdentity.Application.DTOs.Response;
 using BaseIdentity.Application.Interface.IServices;
@@ -44,18 +46,31 @@ namespace BaseIdentity.Application.Services
             }
 
             var newUser = _mapper.Map<ApplicationUser>(request);
-
-            // Generate a unique name
             newUser.UserName = GenerateUserName(request.FirstName, request.LastName);
-            var result = await _userManager.CreateAsync(newUser, request.Password);
-            if (!result.Succeeded)
+
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                _logger.LogInformation("Register failed");
-                return ApiResult<UserResponse>.Failure(string.Join(", ", result.Errors.Select(e => e.Description)));
+                // Tạo user
+                var createResult = await _userManager.CreateAsync(newUser, request.Password);
+                if (!createResult.Succeeded)
+                {
+                    _logger.LogInformation("Register failed");
+                    return ApiResult<UserResponse>.Failure(string.Join(", ", createResult.Errors.Select(e => e.Description)));
+                }
+
+                // Gán role mặc định "USER"
+                var roleResult = await _userManager.AddToRoleAsync(newUser, "USER");
+                if (!roleResult.Succeeded)
+                {
+                    _logger.LogInformation("Assign role failed");
+                    return ApiResult<UserResponse>.Failure(string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+                }
+
+                // Nếu tất cả thành công, hoàn thành giao dịch
+                scope.Complete();
             }
 
             _logger.LogInformation("User create successful");
-            // Assuming you want to return a successful result here
             await _tokenServices.GenerateToken(newUser);
             var userResponse = _mapper.Map<UserResponse>(newUser);
             return ApiResult<UserResponse>.Success(userResponse);
@@ -294,5 +309,73 @@ namespace BaseIdentity.Application.Services
             }
             await _userManager.DeleteAsync(user);
         }
+        public async Task<ApplicationUser> CreateOrUpdateGoogleUserAsync(GoogleUserInfo googleUserInfo)
+        {
+            // Kiểm tra xem user đã tồn tại chưa
+            var user = await _userManager.FindByEmailAsync(googleUserInfo.Email);
+
+            if (user == null)
+            {
+                // Tạo mới user nếu chưa có
+                user = new ApplicationUser
+                {
+                    UserName = googleUserInfo.Email,
+                    Email = googleUserInfo.Email,
+                    FirstName = googleUserInfo.FirstName,
+                    LastName = googleUserInfo.LastName
+                };
+
+                var createResult = await _userManager.CreateAsync(user);
+                if (!createResult.Succeeded)
+                {
+                    // Handle error
+                }
+
+                // Gán role mặc định "USER"
+                var roleResult = await _userManager.AddToRoleAsync(user, "USER");
+                if (!roleResult.Succeeded)
+                {
+                    // Handle gán role thất bại
+                }
+            }
+            else
+            {
+                // Nếu user đã có, cập nhật thông tin nếu có thay đổi
+                bool hasChange = false;
+                if (user.FirstName != googleUserInfo.FirstName)
+                {
+                    user.FirstName = googleUserInfo.FirstName;
+                    hasChange = true;
+                }
+                if (user.LastName != googleUserInfo.LastName)
+                {
+                    user.LastName = googleUserInfo.LastName;
+                    hasChange = true;
+                }
+
+                if (hasChange)
+                {
+                    var updateResult = await _userManager.UpdateAsync(user);
+                    if (!updateResult.Succeeded)
+                    {
+                        // Handle error
+                    }
+                }
+
+                // Kiểm tra nếu người dùng chưa có role "USER", thì thêm vào
+                if (!await _userManager.IsInRoleAsync(user, "USER"))
+                {
+                    var roleResult = await _userManager.AddToRoleAsync(user, "USER");
+                    if (!roleResult.Succeeded)
+                    {
+                        // Handle error
+                    }
+                }
+            }
+
+            return user;
+        }
+
+
     }
 }
