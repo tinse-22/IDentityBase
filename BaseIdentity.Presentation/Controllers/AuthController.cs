@@ -1,7 +1,6 @@
 ﻿using BaseIdentity.Application.DTOs.Request;
 using BaseIdentity.Application.Interface.IExternalAuthService;
 using BaseIdentity.Application.Interface.IServices;
-using BaseIdentity.Application.Interface.IToken;
 using BaseIdentity.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;

@@ -45,9 +45,12 @@ namespace BaseIdentity.Infrastructure.DependencyInjection
             // 3. Cấu hình ASP.NET Core Identity
             services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
             {
-                options.Lockout.MaxFailedAccessAttempts = 5;
-                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-                options.Lockout.AllowedForNewUsers = true;
+                // Cấu hình Lockout
+                options.Lockout.MaxFailedAccessAttempts = 5; // Số lần đăng nhập sai trước khi bị khóa
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5); // Thời gian khóa
+                options.Lockout.AllowedForNewUsers = true; // Cho phép khóa cho người dùng mới
+
+                // Cấu hình Password (có thể tùy chỉnh thêm)
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireDigit = true;
                 options.Password.RequireLowercase = true;

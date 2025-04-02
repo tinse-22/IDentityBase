@@ -103,33 +103,56 @@ namespace BaseIdentity.Application.Services
                 _logger.LogInformation("Login request is null!!!");
                 return ApiResult<UserResponse>.Failure("Invalid request");
             }
+
             var user = await _userManager.FindByEmailAsync(request.Email);
-            if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
+
+            if (user == null)
             {
                 _logger.LogInformation("Invalid user or password");
                 return ApiResult<UserResponse>.Failure("Invalid user or password");
             }
 
-            //Generate access token
+            // Kiểm tra nếu tài khoản bị khóa (Lockout)
+            if (await _userManager.IsLockedOutAsync(user))
+            {
+                _logger.LogInformation("Account is locked.");
+                return ApiResult<UserResponse>.Failure("Your account is locked due to multiple failed login attempts.");
+            }
+
+            // Kiểm tra mật khẩu người dùng
+            var checkPasswordResult = await _userManager.CheckPasswordAsync(user, request.Password);
+
+            if (!checkPasswordResult)
+            {
+                // Nếu mật khẩu sai, tăng AccessFailedCount
+                await _userManager.AccessFailedAsync(user);
+                _logger.LogInformation("Invalid password");
+                return ApiResult<UserResponse>.Failure("Invalid user or password");
+            }
+
+            // Reset AccessFailedCount nếu đăng nhập thành công
+            await _userManager.ResetAccessFailedCountAsync(user);
+
+            // Generate access token
             var accessToken = await _tokenServices.GenerateToken(user);
 
-            //Generate refresh token
+            // Generate refresh token
             var refreshToken = _tokenServices.GenerateRefreshToken();
 
-            //Hash the refresh token and store it in the database or override the existing refresh token
+            // Hash the refresh token and store it in the database
             using var sha256 = SHA256.Create();
             var hashedRefreshToken = sha256.ComputeHash(Encoding.UTF8.GetBytes(refreshToken));
             user.RefreshToken = Convert.ToBase64String(hashedRefreshToken);
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
 
-            //Update USER information in database
-
+            // Update user information in database
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)
             {
                 _logger.LogInformation("Login failed");
                 return ApiResult<UserResponse>.Failure(string.Join(", ", result.Errors.Select(e => e.Description)));
             }
+
             var userResponse = _mapper.Map<ApplicationUser, UserResponse>(user);
             userResponse.AccessToken = accessToken.Data;
             userResponse.RefreshToken = refreshToken;
@@ -164,42 +187,6 @@ namespace BaseIdentity.Application.Services
             var userResponse = _mapper.Map<CurrentUserResponse>(user);
             return ApiResult<CurrentUserResponse>.Success(userResponse);
         }
-
-        //Revoke refresh token
-        //public async Task<ApiResult<RevokeRefreshTokenResponse>> RevokeRefreshToken(RefreshTokenRequest refreshTokenRemoveRequest)
-        //{
-        //    _logger.LogInformation("Revoke refresh token");
-
-        //    //Hash the incoming refresh token and compare it with the one stored in the database
-        //    using var sha256 = SHA256.Create(); 
-        //    var refreshTokenHash = sha256.ComputeHash(Encoding.UTF8.GetBytes(refreshTokenRemoveRequest.RefreshToken));
-        //    var hashedRefreshToken = Convert.ToBase64String(refreshTokenHash);
-
-        //    //find the user based on the refresh token
-        //    var user = await _userManager.Users.FirstOrDefaultAsync(u => u.RefreshToken == hashedRefreshToken);
-        //    if (user == null)
-        //    {
-        //        _logger.LogInformation("User not found");
-        //        return ApiResult<RevokeRefreshTokenResponse>.Failure("User not found");
-        //    }
-
-        //    // validate the refresh token expiry time
-        //    if(user.RefreshTokenExpiryTime < DateTime.UtcNow)
-        //    {
-        //        _logger.LogWarning("Refresh token expired");
-        //        return ApiResult<RevokeRefreshTokenResponse>.Failure("Refresh token expired");
-        //    }
-
-        //    //generate a new refresh token
-        //    var newAccessToken = _tokenServices.GenerateRefreshToken();
-
-        //    var currentUserReponse = _mapper.Map<CurrentUserResponse>(user);
-        //    currentUserReponse.AccessToken = newAccessToken;
-
-
-        //}
-
-        //Revoke refresh token
         public async Task<ApiResult<RevokeRefreshTokenResponse>> RevokeRefreshToken(RefreshTokenRequest refreshTokenRemoveRequest)
         {
             try
