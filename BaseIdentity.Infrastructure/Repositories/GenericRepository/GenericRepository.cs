@@ -1,8 +1,4 @@
-﻿using System.Linq.Expressions;
-using BaseIdentity.Application.Interface.Repositories.IGenericRepository;
-using BaseIdentity.Domain.Common;
-using BaseIdentity.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace BaseIdentity.Infrastructure.Repositories.GenericRepository
 {

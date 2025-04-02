@@ -1,12 +1,4 @@
-﻿using BaseIdentity.Application.DTOs.Request;
-using BaseIdentity.Application.Interface.IExternalAuthService;
-using BaseIdentity.Application.Interface.IServices;
-using BaseIdentity.Domain.Entities;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-
-namespace BaseIdentity.Presentation.Controllers
+﻿namespace BaseIdentity.Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -15,8 +7,6 @@ namespace BaseIdentity.Presentation.Controllers
         private readonly IUserServices _userServices;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IExternalAuthService _externalAuthService;
-
-
 
         public AuthController(IUserServices userServices, SignInManager<ApplicationUser> signInManager,   IExternalAuthService externalAuthService)
         {
@@ -43,7 +33,8 @@ namespace BaseIdentity.Presentation.Controllers
 
         //get user by id
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "USER,ADMIN")]
+
         public async Task<IActionResult> GetById(Guid id)
         {
             var reponse = await _userServices.GetByIdAsync(id);

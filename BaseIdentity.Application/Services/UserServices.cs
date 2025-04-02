@@ -1,14 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 using System.Transactions;
-using AuthenticationApi.Application.Common;
 using AutoMapper;
-using BaseIdentity.Application.DTOs.Identities;
-using BaseIdentity.Application.DTOs.Request;
-using BaseIdentity.Application.DTOs.Response;
-using BaseIdentity.Application.Interface.IServices;
-using BaseIdentity.Application.Interface.IToken;
-using BaseIdentity.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

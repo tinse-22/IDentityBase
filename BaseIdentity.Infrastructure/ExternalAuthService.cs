@@ -1,9 +1,4 @@
-﻿using System.Security.Claims;
-using AuthenticationApi.Application.Common;
-using BaseIdentity.Application.Interface.IExternalAuthService;
-using BaseIdentity.Application.Interface.IToken;
-using BaseIdentity.Domain.Entities;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 
 namespace BaseIdentity.Application.Services
 {

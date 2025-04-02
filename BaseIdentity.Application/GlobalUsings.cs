@@ -1,0 +1,12 @@
+﻿global using System.Linq.Expressions;
+global using System.Security.Claims;
+global using AuthenticationApi.Application.Common;
+global using BaseIdentity.Application.DTOs.Request;
+global using BaseIdentity.Application.DTOs.Response;
+global using BaseIdentity.Application.Interface.IServices;
+global using BaseIdentity.Application.Interface.IToken;
+global using BaseIdentity.Domain.Common;
+global using BaseIdentity.Domain.Entities;
+global using System.ComponentModel.DataAnnotations;
+global using BaseIdentity.Domain.Common.Enums;
+global using BaseIdentity.Application.DTOs.Identities;

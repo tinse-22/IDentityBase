@@ -1,20 +1,4 @@
-﻿using BaseIdentity.Application.Mapping;
-using BaseIdentity.Application.Services;
-using BaseIdentity.Infrastructure.Data.UnitOfWork;
-using BaseIdentity.Infrastructure.DependencyInjection;
-using BaseIdentity.Infrastructure.Repositories.GenericRepository;
-using BaseIdentity.Presentation.Exceptions;
-using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Identity;
-using System.Text;
-using Microsoft.IdentityModel.Tokens;
-using BaseIdentity.Application.Interface.IServices;
-using BaseIdentity.Application.Interface.IToken;
-using BaseIdentity.Application.Interface.Repositories.IGenericRepository;
-using BaseIdentity.Application.Interface.Repositories.IUnitOfWork;
-
-var builder = WebApplication.CreateBuilder(args);
+﻿var builder = WebApplication.CreateBuilder(args);
 
 // Đăng ký HttpContextAccessor và ProblemDetails
 builder.Services.AddHttpContextAccessor();

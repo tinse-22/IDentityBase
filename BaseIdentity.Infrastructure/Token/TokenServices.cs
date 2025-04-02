@@ -1,17 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using AuthenticationApi.Application.Common;
-using BaseIdentity.Application.DTOs.Request;
-using BaseIdentity.Application.Interface.IToken;
-using BaseIdentity.Domain.Entities;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
-
-namespace BaseIdentity.Application.Services
+﻿namespace BaseIdentity.Application.Services
 {
     public class TokenServices : ITokenServices
     {

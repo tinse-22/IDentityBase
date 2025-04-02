@@ -1,14 +1,4 @@
-﻿using BaseIdentity.Application.DTOs.Request;
-using BaseIdentity.Application.Interface.IExternalAuthService;
-using BaseIdentity.Application.Interface.IServices;
-using BaseIdentity.Application.Interface.IToken;
-using BaseIdentity.Application.Interface.Repositories.IGenericRepository;
-using BaseIdentity.Application.Interface.Repositories.IUnitOfWork;
-using BaseIdentity.Application.Services;
-using BaseIdentity.Domain.Entities;
-using BaseIdentity.Infrastructure.Data;
-using BaseIdentity.Infrastructure.Data.UnitOfWork;
-using BaseIdentity.Infrastructure.Repositories.GenericRepository;
+﻿using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -16,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 
 namespace BaseIdentity.Infrastructure.DependencyInjection
 {

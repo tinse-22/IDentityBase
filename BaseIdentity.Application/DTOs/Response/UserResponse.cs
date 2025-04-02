@@ -1,6 +1,4 @@
-﻿using BaseIdentity.Domain.Common.Enums;
-
-namespace BaseIdentity.Application.DTOs.Response
+﻿namespace BaseIdentity.Application.DTOs.Response
 {
     public class UserResponse
     {

@@ -1,7 +1,4 @@
 ﻿using AutoMapper;
-using BaseIdentity.Application.DTOs.Request;
-using BaseIdentity.Application.DTOs.Response;
-using BaseIdentity.Domain.Entities;
 
 namespace BaseIdentity.Application.Mapping
 {

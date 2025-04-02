@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-using BaseIdentity.Application.Interface.IServices;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 
 namespace BaseIdentity.Application.Services
 {

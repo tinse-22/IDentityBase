@@ -1,7 +1,4 @@
-﻿using BaseIdentity.Application.DTOs.Response;
-using System.Net;
-
-namespace BaseIdentity.Presentation.Exceptions
+﻿namespace BaseIdentity.Presentation.Exceptions
 {
     public class GlobalExceptionMiddleware
     {

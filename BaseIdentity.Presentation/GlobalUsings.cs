@@ -1,0 +1,13 @@
+﻿global using System.Net;
+global using BaseIdentity.Application.DTOs.Request;
+global using BaseIdentity.Application.DTOs.Response;
+global using BaseIdentity.Application.Interface.IExternalAuthService;
+global using BaseIdentity.Application.Interface.IServices;
+global using BaseIdentity.Application.Mapping;
+global using BaseIdentity.Domain.Entities;
+global using BaseIdentity.Infrastructure.DependencyInjection;
+global using BaseIdentity.Presentation.Exceptions;
+global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.AspNetCore.Identity;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.OpenApi.Models;

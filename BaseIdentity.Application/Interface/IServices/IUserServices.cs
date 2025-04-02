@@ -1,9 +1,4 @@
-﻿using AuthenticationApi.Application.Common;
-using BaseIdentity.Application.DTOs.Identities;
-using BaseIdentity.Application.DTOs.Request;
-using BaseIdentity.Application.DTOs.Response;
-using BaseIdentity.Domain.Entities;
-namespace BaseIdentity.Application.Interface.IServices
+﻿namespace BaseIdentity.Application.Interface.IServices
 {
     public interface IUserServices
     {

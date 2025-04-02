@@ -1,0 +1,15 @@
+﻿global using System.Linq.Expressions;
+global using System.Security.Claims;
+global using AuthenticationApi.Application.Common;
+global using BaseIdentity.Application.DTOs.Request;
+global using BaseIdentity.Application.Interface.IExternalAuthService;
+global using BaseIdentity.Application.Interface.IServices;
+global using BaseIdentity.Application.Interface.IToken;
+global using BaseIdentity.Application.Interface.Repositories.IGenericRepository;
+global using BaseIdentity.Application.Interface.Repositories.IUnitOfWork;
+global using BaseIdentity.Domain.Common;
+global using BaseIdentity.Domain.Entities;
+global using BaseIdentity.Infrastructure.Data;
+global using BaseIdentity.Infrastructure.Data.UnitOfWork;
+global using BaseIdentity.Infrastructure.Repositories.GenericRepository;
+global using BaseIdentity.Application.Services;
