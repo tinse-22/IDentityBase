@@ -355,7 +355,5 @@ namespace BaseIdentity.Application.Services
 
             return user;
         }
-
-
     }
 }

@@ -34,7 +34,6 @@
         //get user by id
         [HttpGet("{id}")]
         [Authorize(Roles = "USER,ADMIN")]
-
         public async Task<IActionResult> GetById(Guid id)
         {
             var reponse = await _userServices.GetByIdAsync(id);
@@ -90,6 +89,5 @@
                 return BadRequest();
             return Ok(result.Data);
         }
-
     }
 }

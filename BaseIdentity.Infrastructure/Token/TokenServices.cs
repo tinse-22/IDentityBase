@@ -1,4 +1,11 @@
-﻿namespace BaseIdentity.Application.Services
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+
+namespace BaseIdentity.Application.Services
 {
     public class TokenServices : ITokenServices
     {
@@ -7,12 +14,10 @@
         private readonly string? _validAudience;
         private readonly double _expires;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ILogger<TokenServices> _logger;
 
-        public TokenServices(IConfiguration configuration, UserManager<ApplicationUser> userManager, ILogger<TokenServices> logger)
+        public TokenServices(IConfiguration configuration, UserManager<ApplicationUser> userManager)
         {
             _userManager = userManager;
-            _logger = logger;
             var jwtSettings = configuration.GetSection("JwtSettings").Get<JwtSettings>();
             if (jwtSettings == null || string.IsNullOrEmpty(jwtSettings.Key))
             {
